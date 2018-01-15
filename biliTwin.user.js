@@ -6276,16 +6276,10 @@ class UI extends BiliUserJS {
             }
         }
         let tr = table.insertRow(-1);
-        tr.insertCell(0).innerHTML = '<a>全部复制到剪贴板</a>';
+        tr.insertCell(0).innerHTML = '<a download="biliTwin.m3u8">M3U8导出</a>';
         tr.insertCell(1).innerHTML = '<a>缓存全部+自动合并</a>';
         tr.insertCell(2).innerHTML = `<progress value="0" max="${flvs.length + 1}">进度条</progress>`;
-        if (top.location.href.includes('bangumi')) {
-            tr.children[0].children[0].onclick = () => UI.copyToClipboard(flvs.join('\n'));
-        }
-        else {
-            tr.children[0].innerHTML = '<a download="biliTwin.ef2">IDM导出</a>';
-            tr.children[0].children[0].href = URL.createObjectURL(new Blob([UI.exportIDM(flvs, top.location.origin)]));
-        }
+        tr.children[0].children[0].href = URL.createObjectURL(new Blob([UI.exportM3U8(flvs, top.location.origin, top.navigator.userAgent)]));
         tr.children[1].children[0].onclick = () => UI.downloadAllFLVs(tr.children[1].children[0], monkey, table);
         table.insertRow(-1).innerHTML = '<td colspan="3">合并功能推荐配置：至少8G RAM。把自己下载的分段FLV拖动到这里，也可以合并哦~</td>';
         table.insertRow(-1).innerHTML = cache ? '<td colspan="3">下载的缓存分段会暂时停留在电脑里，过一段时间会自动消失。建议只开一个标签页。</td>' : '<td colspan="3">建议只开一个标签页。关掉标签页后，缓存就会被清理。别忘了另存为！</td>';
@@ -6867,8 +6861,12 @@ class UI extends BiliUserJS {
         document.body.removeChild(textarea);
     }
 
-    static exportIDM(url, referrer) {
+    static exportIDM(url, referrer = top.location.origin) {
         return url.map(e => `<\r\n${e}\r\nreferer: ${referrer}\r\n>\r\n`).join('');
+    }
+
+    static exportM3U8(flvs, referrer = top.location.origin, userAgent = top.navigator.userAgent) {
+        return '#EXTM3U\n' + flvs.map(e => `#EXTVLCOPT:http-referrer=${referrer}\n#EXTVLCOPT:http-user-agent=${userAgent}\n#EXTINF:-1\n${e}\n`).join('');
     }
 
     static allowDrag(e) {
